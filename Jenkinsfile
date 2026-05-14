@@ -17,6 +17,11 @@ pipeline {
                 sh 'docker build -t bertiekiff/flask-app .'
             }
         }
+        stage('Unit Test') {
+            steps {
+                sh 'python3 unit_test.py'
+            }
+        }
         stage('Trivy Scan') {
             steps {
                 sh 'trivy fs --format json --output trivy-results.json .'
