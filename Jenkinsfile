@@ -32,7 +32,6 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'pip install requests || pip3 install requests'
                 sh 'python3 test_app.py'
             }
         }
