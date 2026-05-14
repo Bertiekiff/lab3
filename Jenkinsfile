@@ -4,7 +4,7 @@ pipeline {
         stage('Clean-up'){
             steps {
                 sh 'docker rm -f flask-app nginx-proxy || true'
-                sh 'docker network rm app-network || true'
+                sh 'docker network rm new-network || true'
             }
         }
         stage('set-up'){
