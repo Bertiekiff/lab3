@@ -19,8 +19,8 @@ pipeline {
         }
         stage('Deploy'){
             steps {
-                sh 'docker run -d --name flask-app --network app-network bertiekiff/flask-app'
-                sh 'docker run -d -p 80:80 --name nginx-proxy --network app-network -v \$(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx'
+                sh 'docker run -d --name flask-app --network new-network bertiekiff/flask-app'
+                sh 'docker run -d -p 80:80 --name nginx-proxy --network new-network -v \$(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx'
             }
         }
         stage('Test'){
