@@ -17,22 +17,29 @@ pipeline {
                 sh 'docker build -t bertiekiff/flask-app .'
             }
         }
-        stage('Deploy'){
+        stage('Trivy Scan') {
             steps {
-                sh 'docker run -d --name flask-app --network new-network bertiekiff/flask-app'
-                sh 'docker run -d -p 80:80 --name nginx-proxy --network new-network -v "$(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro" nginx'
+                sh 'trivy fs --format json --output trivy-results.json .'
+                sh 'trivy fs --severity HIGH,CRITICAL .'
             }
         }
-        stage('Test'){
+        stage('Deploy') {
             steps {
-                sh 'sleep 5'
-                sh 'curl localhost'
+                sh 'docker run -d --name flask-app --network app-network bertiekiff/flask-app'
+                sh 'docker run -d -p 80:80 --name nginx-proxy --network app-network -v "$(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro" nginx'
+                sh 'sleep 10'
             }
         }
-        stage('Security Scan'){
+        stage('Test') {
             steps {
-                sh 'trivy image bertiekiff/flask-app'
+                sh 'pip install requests || pip3 install requests'
+                sh 'python3 test_app.py'
             }
+        }
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'trivy-results.json', allowEmptyArchive: true
         }
     }
 }
