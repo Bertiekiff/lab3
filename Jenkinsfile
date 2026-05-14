@@ -1,27 +1,35 @@
 pipeline {
     agent any
     stages {
-        stage('Build'){
+        stage('Clean-up'){
             steps {
                 sh 'rm -f helloWorld.sh'
                 sh 'ls'
-                sh 'touch helloWorld.sh'
-                sh 'echo "#!/bin/bash" > helloWorld.sh'
-                sh 'echo "echo Hello World!" >> helloWorld.sh'
-                sh 'chmod +x helloWorld.sh'
-                sh 'ls -l'
+                sh 'docker rm -f $(docker ps -a -q)'
             }
         }
-        stage('Test'){
+        stage('set-up'){
             steps {
-                sh './helloWorld.sh'
-                sh 'pwd'
+                sh 'docker network create new-network'
+            }
+        }       
+        stage('Build'){
+            steps {
+                sh 'docker build -t bertiekiff/flask-app'
             }
         }
         stage('Deploy'){
             steps {
-                sh 'ls'
+                sh 'docker run -d --name flask-app --network app-network bertiekiff/flask-app'
+                sh 'docker run -d -p 80:80 --name nginx-proxy --network app-network -v \$(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx'
             }
+        }
+        stage('Test'){
+            steps {
+                sh 'sleep 5'
+                sh 'curl localhost'
+            }
+        }
         }
     }
 }
