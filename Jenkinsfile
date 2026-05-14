@@ -3,9 +3,8 @@ pipeline {
     stages {
         stage('Clean-up'){
             steps {
-                sh 'rm -f helloWorld.sh'
-                sh 'ls'
-                sh 'docker rm -f $(docker ps -a -q)'
+                sh 'docker rm -f flask-app nginx-proxy || true'
+                sh 'docker network rm app-network || true'
             }
         }
         stage('set-up'){
@@ -15,7 +14,7 @@ pipeline {
         }       
         stage('Build'){
             steps {
-                sh 'docker build -t bertiekiff/flask-app'
+                sh 'docker build -t bertiekiff/flask-app .'
             }
         }
         stage('Deploy'){
