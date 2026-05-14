@@ -29,5 +29,10 @@ pipeline {
                 sh 'curl localhost'
             }
         }
+        stage('Security Scan'){
+            steps {
+                sh 'trivy image bertiekiff/flask-app'
+            }
+        }
     }
 }
