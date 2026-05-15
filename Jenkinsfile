@@ -3,6 +3,10 @@ pipeline {
     parameters {
         booleanParam(name: 'USE_SLIM_IMAGE', defaultValue: false, description: 'Build a slimmed image?')
     }
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('Yaqub')
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
     stages {
         stage('Clean-up'){
             steps {
@@ -73,9 +77,19 @@ pipeline {
                 sh 'python3 test_app.py'
             }
         }
+        stage('Tag and Push') {
+            steps {
+                sh 'echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin'
+                sh "docker tag bertiekiff/flask-app bertiekiff/flask-app:${IMAGE_TAG}"
+                sh "docker tag bertiekiff/flask-app bertiekiff/flask-app:latest"
+                sh "docker push bertiekiff/flask-app:${IMAGE_TAG}"
+                sh "docker push bertiekiff/flask-app:latest"
+            }
+        }
     }
     post {
         always {
+            sh 'docker logout'
             archiveArtifacts artifacts: 'trivy-results.json', allowEmptyArchive: true
         }
     }
