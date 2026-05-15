@@ -86,6 +86,13 @@ pipeline {
                 sh "docker push bertiekiff/flask-app:latest"
             }
         }
+        stage('Collect Metadata') {
+            steps {
+                sh "docker image inspect bertiekiff/flask-app:${IMAGE_TAG} > image-inspect.json"
+                sh "docker image ls bertiekiff/flask-app --format '{{.Repository}}:{{.Tag}} {{.Size}} {{.ID}}' > image-list.txt"
+                sh "docker history bertiekiff/flask-app:${IMAGE_TAG} > image-history.txt"
+            }
+        }
     }
     post {
         always {
