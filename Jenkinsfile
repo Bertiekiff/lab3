@@ -12,10 +12,11 @@ pipeline {
                 sh 'docker network create new-network'
             }
         }       
-        stage('Build'){
+        stage('Build') {
             steps {
                 sh 'docker build -t bertiekiff/flask-app .'
-            }
+                sh 'docker build -t bertiekiff/nginx-proxy -f Dockerfile.nginx .'
+                }
         }
         stage('Unit Test') {
             steps {
@@ -38,7 +39,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh 'docker run -d --name flask-app --network new-network bertiekiff/flask-app'
-                sh 'docker run -d -p 80:80 --name nginx-proxy --network new-network -v "$(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro" nginx'
+                sh 'docker run -d -p 80:80 --name nginx-proxy --network new-network bertiekiff/nginx-proxy'
                 sh 'sleep 10'
             }
         }
