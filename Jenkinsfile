@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    parameters {
+        booleanParam(name: 'USE_SLIM_IMAGE', defaultValue: false, description: 'Build a slimmed image?')
+    }
     stages {
         stage('Clean-up'){
             steps {
@@ -17,6 +20,28 @@ pipeline {
                 sh 'docker build -t bertiekiff/flask-app .'
                 sh 'docker build -t bertiekiff/nginx-proxy -f Dockerfile.nginx .'
                 }
+        }
+        stage('Image Size Gate') {
+            steps {
+                script {
+                    def size = sh(script: "docker image inspect bertiekiff/flask-app --format='{{.Size}}'", returnStdout: true).trim().toLong()
+                    def sizeMB = size / 1024 / 1024
+                    echo "Image size: ${sizeMB} MB"
+                    if (sizeMB > 200) {
+                        unstable("Image size ${sizeMB}MB exceeds 200MB limit")
+                    }
+                }
+            }
+        }
+        stage('Slim Build') {
+            when { expression { return params.USE_SLIM_IMAGE } }
+            steps {
+                sh 'slim build --target bertiekiff/flask-app --tag bertiekiff/flask-app:slim --http-probe=false'
+                script {
+                    def size = sh(script: "docker image inspect bertiekiff/flask-app:slim --format='{{.Size}}'", returnStdout: true).trim().toLong()
+                    echo "Slim image size: ${size / 1024 / 1024} MB"
+                }
+            }
         }
         stage('Unit Test') {
             steps {
