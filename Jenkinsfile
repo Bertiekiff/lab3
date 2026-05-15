@@ -97,7 +97,7 @@ pipeline {
     post {
         always {
             sh 'docker logout'
-            archiveArtifacts artifacts: 'trivy-results.json', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'trivy-results.json, image-inspect.json, image-list.txt, image-history.txt', allowEmptyArchive: true
         }
     }
 }
